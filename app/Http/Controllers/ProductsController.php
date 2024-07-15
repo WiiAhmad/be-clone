@@ -4,15 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\products;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class ProductsController extends Controller
+class ProductsController extends Controller implements HasMiddleware
 {
-    public function __construct()
+    public static function middleware()
     {
-        $this->middleware('auth:sanctum', ['except' => ['index', 'show']]);
+        return [
+            new Middleware('auth:sanctum', ['except' => ['index', 'show']])
+        ];
     }
-
     /**
      * Display a listing of the resource.
      */

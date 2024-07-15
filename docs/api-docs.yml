@@ -472,9 +472,10 @@
                   "id": { "type": "integer" },
                   "title": { "type": "string" },
                   "desc": { "type": "string" },
+                  "category": { "type": "string", "nullable": true },
                   "image": { "type": "string", "nullable": true },
                   "date":
-                    { "type": "string", "format": "date", "nullable": true },
+                    { "type": "string", "format": "date-time", "nullable": true },
                 },
             },
           "LoginRequest":
@@ -512,7 +513,7 @@
                 {
                   "id": { "type": "integer" },
                   "name": { "type": "string" },
-                  "email": {},
+                  "email": { "type": "string", "format": "email" },
                 },
             },
         },
