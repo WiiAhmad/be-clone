@@ -73,27 +73,29 @@ class ActivitiesController extends Controller implements HasMiddleware
     {
         $activity = activities::find($id);
 
-        Gate::authorize('modify', $activity);
-        // Step 1: Validate the incoming request data
-        if (!$activity) {
-            return response()->json(['message' => 'Activity not found'], 404);
+        if (Gate::allows('modify', $activity)) {
+            if ($activity) {
+                $fields = $request->validate([
+                    'title' => 'required',
+                    'desc' => 'required',
+                    'image' => 'nullable|image|mimes:png,jpg,jpeg',
+                    'date' => 'nullable|date'
+                ]);
+
+                if ($request->hasFile('image')) {
+                    $imageName = time().'.'.$request->image->getClientOriginalExtension();
+                    $request->image->move(public_path('images'), $imageName);
+                    $fields['image'] = $imageName;
+                }
+
+                $activity->update($fields);
+                return ['activity' => $activity];
+            } else {
+                return response()->json(['message' => 'Activity not found'], 404);
+            }
+        } else {
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
-
-        $validatedData = $request->validate([
-            'title' => 'required',
-            'desc' => 'required',
-            'category' => 'nullable',
-            'image' => 'nullable|image|mimes:png,jpg,jpeg',
-            'date' => 'nullable|date'
-        ]);
-
-        // Step 2: Find the model instance
-
-        // Step 3: Update the model
-        $activity->update($validatedData);
-
-        // Step 4: Return the updated model
-        return response()->json($activity);
     }
 
     /**
@@ -103,15 +105,15 @@ class ActivitiesController extends Controller implements HasMiddleware
     {
         $activity = activities::find($id);
 
-        Gate::authorize('modify', $activity);
-
-        if (!$activity) {
+        if ($activity) {
+            if (Gate::allows('modify', $activity)) {
+                $activity->delete();
+                return response()->json(['message' => 'Activity deleted']);
+            } else {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+        } else {
             return response()->json(['message' => 'Activity not found'], 404);
         }
-
-        $activity->delete();
-
-        // Return a 200 OK status with a message
-        return response()->json(['message' => 'Activity deleted successfully']);
     }
 }

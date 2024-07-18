@@ -320,6 +320,166 @@
                 },
             },
         },
+      "/testimoni":
+        {
+          "get":
+            {
+              "summary": "Get all testimonis",
+              "operationId": "getTestimonis",
+              "tags": ["Testimoni"],
+              "responses":
+                {
+                  "200":
+                    {
+                      "description": "A list of testimonis",
+                      "content":
+                        {
+                          "application/json":
+                            {
+                              "schema":
+                                {
+                                  "type": "array",
+                                  "items":
+                                    {
+                                      "$ref": "#/components/schemas/Testimoni",
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+          "post":
+            {
+              "summary": "Create a new testimoni",
+              "operationId": "createTestimoni",
+              "tags": ["Testimoni"],
+              "requestBody":
+                {
+                  "required": true,
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            { "$ref": "#/components/schemas/Testimoni" },
+                        },
+                    },
+                },
+              "responses":
+                {
+                  "201":
+                    {
+                      "description": "Testimoni created",
+                      "content":
+                        {
+                          "application/json":
+                            {
+                              "schema":
+                                { "$ref": "#/components/schemas/Testimoni" },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+      "/testimoni/{id}":
+        {
+          "get":
+            {
+              "summary": "Get a testimoni by ID",
+              "operationId": "getTestimoniById",
+              "tags": ["Testimoni"],
+              "parameters":
+                [
+                  {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": { "type": "integer" },
+                  },
+                ],
+              "responses":
+                {
+                  "200":
+                    {
+                      "description": "Testimoni details",
+                      "content":
+                        {
+                          "application/json":
+                            {
+                              "schema":
+                                { "$ref": "#/components/schemas/Testimoni" },
+                            },
+                        },
+                    },
+                  "404": { "description": "Testimoni not found" },
+                },
+            },
+          "put":
+            {
+              "summary": "Update a testimoni by ID",
+              "operationId": "updateTestimoni",
+              "tags": ["Testimoni"],
+              "parameters":
+                [
+                  {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": { "type": "integer" },
+                  },
+                ],
+              "requestBody":
+                {
+                  "required": true,
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            { "$ref": "#/components/schemas/Testimoni" },
+                        },
+                    },
+                },
+              "responses":
+                {
+                  "200":
+                    {
+                      "description": "Testimoni updated",
+                      "content":
+                        {
+                          "application/json":
+                            {
+                              "schema":
+                                { "$ref": "#/components/schemas/Testimoni" },
+                            },
+                        },
+                    },
+                  "404": { "description": "Testimoni not found" },
+                },
+            },
+          "delete":
+            {
+              "summary": "Delete a testimoni by ID",
+              "operationId": "deleteTestimoni",
+              "tags": ["Testimoni"],
+              "parameters":
+                [
+                  {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": { "type": "integer" },
+                  },
+                ],
+              "responses":
+                {
+                  "200": { "description": "Testimoni deleted" },
+                  "404": { "description": "Testimoni not found" },
+                },
+            },
+        },
       "/login":
         {
           "post":
@@ -475,7 +635,22 @@
                   "category": { "type": "string", "nullable": true },
                   "image": { "type": "string", "nullable": true },
                   "date":
-                    { "type": "string", "format": "date-time", "nullable": true },
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true,
+                    },
+                },
+            },
+          "Testimoni":
+            {
+              "type": "object",
+              "properties":
+                {
+                  "id": { "type": "integer" },
+                  "rating": { "type": "integer" },
+                  "testimoni": { "type": "string" },
+                  "image": { "type": "string", "nullable": true },
                 },
             },
           "LoginRequest":

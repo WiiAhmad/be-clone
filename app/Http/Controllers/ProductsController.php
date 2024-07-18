@@ -69,30 +69,31 @@ class ProductsController extends Controller implements HasMiddleware
     {
         $product = products::find($id);
 
-        Gate::authorize('modify', $product);
+        if ($product) {
+            if (Gate::allows('modify', $product)) {
+                $fields = $request->validate([
+                    'title' => 'required',
+                    'desc' => 'required',
+                    'image' => 'nullable|image|mimes:png,jpg,jpeg',
+                    'rating' => 'nullable|numeric',
+                    'category' => 'required',
+                    'release_date' => 'nullable|date'
+                ]);
 
-        if (!$product) {
-            return response()->json(['message' => 'Product not found'], 404);
+                if ($request->hasFile('image')) {
+                    $imageName = time().'.'.$request->image->getClientOriginalExtension();
+                    $request->image->move(public_path('images'), $imageName);
+                    $fields['image'] = $imageName;
+                }
+
+                $product->update($fields);
+                return response()->json(['message' => 'Product updated.']);
+            } else {
+                return response()->json(['message' => 'You do not own this product.'], 403);
+            }
+        } else {
+            return response()->json(['message' => 'Product not found.'], 404);
         }
-
-        $fields = $request->validate([
-            'title' => 'required',
-            'desc' => 'required',
-            'image' => 'nullable|image|mimes:png,jpg,jpeg',
-            'rating' => 'nullable|numeric',
-            'category' => 'required',
-            'release_date' => 'nullable|date'
-        ]);
-
-        if ($request->hasFile('image')) {
-            $imageName = time().'.'.$request->image->getClientOriginalExtension();
-            $request->image->move(public_path('images'), $imageName);
-            $fields['image'] = $imageName;
-        }
-
-        $product->update($fields);
-
-        return ['product' => $product]; // Renamed from 'products' to 'product'
     }
 
     /**
@@ -100,13 +101,15 @@ class ProductsController extends Controller implements HasMiddleware
      */
     public function destroy($id)
     {
-        Gate::authorize('modify', $product);
-
         $product = products::find($id);
 
         if ($product) {
-            $product->delete();
-            return response()->json(['message' => 'Product deleted']);
+            if (Gate::allows('modify', $product)) {
+                $product->delete();
+                return response()->json(['message' => 'Product deleted']);
+            } else {
+                return response()->json(['message' => 'You do not own this product.'], 403);
+            }
         } else {
             return response()->json(['message' => 'Product not found'], 404);
         }

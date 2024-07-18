@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\ActivitiesController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\TestimoniController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -13,6 +14,8 @@ Route::get('/user', function (Request $request) {
 Route::apiResource('products', ProductsController::class)->middleware('auth:sanctum');
 
 Route::apiResource('activities', ActivitiesController::class)->middleware('auth:sanctum');
+
+Route::apiResource('testimoni', TestimoniController::class)->middleware('auth:sanctum');
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
