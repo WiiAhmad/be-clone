@@ -6,6 +6,7 @@ use App\Models\products;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Gate;
 
 class ProductsController extends Controller implements HasMiddleware
 {
@@ -43,10 +44,8 @@ class ProductsController extends Controller implements HasMiddleware
             $fields['image'] = $imageName;
         }
 
-        //$product = products::create($fields);
-        $product = $request->user()->products()->create($fields); // Renamed from 'products' to 'Product'
-
-        return ['product' => $product]; // Renamed from 'products' to 'product'
+        $product = $request->user()->products()->create($fields);
+        return ['product' => $product];
     }
 
     /**
@@ -68,9 +67,9 @@ class ProductsController extends Controller implements HasMiddleware
      */
     public function update(Request $request, $id) // Removed 'Product $product' parameter
     {
-        Gate::authorize('modify', $product);
-
         $product = products::find($id);
+
+        Gate::authorize('modify', $product);
 
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);

@@ -8,11 +8,11 @@ use Illuminate\Auth\Access\Response;
 
 class ProductsPolicy
 {
-    public function forceDelete(User $user, products $products): Response
+    public function modify(User $user, products $products): Response
     {
         return $user->id === $products->user_id
             ? Response::allow()
             : Response::deny('You do not own this product.');
-
     }
+
 }

@@ -29,7 +29,6 @@ class ActivitiesController extends Controller implements HasMiddleware
      */
     public function store(Request $request)
     {
-        // Validate the request data
         $fields = $request->validate([
             'title' => 'required',
             'desc' => 'required',
@@ -43,9 +42,6 @@ class ActivitiesController extends Controller implements HasMiddleware
             $imageName = time().'.'.$request->image->getClientOriginalExtension();
             // Move the image to the public/images directory
             $request->image->move(public_path('images'), $imageName);
-        } else {
-            // Set imageName to null if no image is uploaded
-            $imageName = null;
         }
 
         //$activities = activities::create($fields);
@@ -75,8 +71,14 @@ class ActivitiesController extends Controller implements HasMiddleware
      */
     public function update(Request $request, $id)
     {
+        $activity = activities::find($id);
+
         Gate::authorize('modify', $activity);
         // Step 1: Validate the incoming request data
+        if (!$activity) {
+            return response()->json(['message' => 'Activity not found'], 404);
+        }
+
         $validatedData = $request->validate([
             'title' => 'required',
             'desc' => 'required',
@@ -86,10 +88,6 @@ class ActivitiesController extends Controller implements HasMiddleware
         ]);
 
         // Step 2: Find the model instance
-        $activity = activities::find($id);
-        if (!$activity) {
-            return response()->json(['message' => 'Activity not found'], 404);
-        }
 
         // Step 3: Update the model
         $activity->update($validatedData);
@@ -103,9 +101,9 @@ class ActivitiesController extends Controller implements HasMiddleware
      */
     public function destroy($id)
     {
-        Gate::authorize('modify', $activity);
-
         $activity = activities::find($id);
+
+        Gate::authorize('modify', $activity);
 
         if (!$activity) {
             return response()->json(['message' => 'Activity not found'], 404);
