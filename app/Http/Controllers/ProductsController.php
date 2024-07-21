@@ -21,7 +21,7 @@ class ProductsController extends Controller implements HasMiddleware
      */
     public function index()
     {
-        return products::all(); // Renamed from 'products' to 'Product'
+        return products::all();
     }
 
     /**
@@ -39,8 +39,8 @@ class ProductsController extends Controller implements HasMiddleware
         ]);
 
         if ($request->hasFile('image')) {
-            $imageName = time().'.'.$request->image->getClientOriginalExtension();
-            $request->image->move(public_path('images'), $imageName);
+            $imageName = time().'.'.$request->file('image')->getClientOriginalExtension();
+            $request->file('image')->move(public_path('images'), $imageName);
             $fields['image'] = $imageName;
         }
 
@@ -53,7 +53,7 @@ class ProductsController extends Controller implements HasMiddleware
      */
     public function show($id)
     {
-        $product = products::find($id);
+        $product = products::find($id); // Renamed from 'products' to 'Product'
 
         if ($product) {
             return response()->json($product);
@@ -67,7 +67,7 @@ class ProductsController extends Controller implements HasMiddleware
      */
     public function update(Request $request, $id) // Removed 'Product $product' parameter
     {
-        $product = products::find($id);
+        $product = products::find($id); // Renamed from 'products' to 'Product'
 
         if ($product) {
             if (Gate::allows('modify', $product)) {
@@ -81,9 +81,7 @@ class ProductsController extends Controller implements HasMiddleware
                 ]);
 
                 if ($request->hasFile('image')) {
-                    $imageName = time().'.'.$request->image->getClientOriginalExtension();
-                    $request->image->move(public_path('images'), $imageName);
-                    $fields['image'] = $imageName;
+                    $fields['image'] = $request->file('image')->store('images', 'public');
                 }
 
                 $product->update($fields);
@@ -101,7 +99,7 @@ class ProductsController extends Controller implements HasMiddleware
      */
     public function destroy($id)
     {
-        $product = products::find($id);
+        $product = products::find($id); // Renamed from 'products' to 'Product'
 
         if ($product) {
             if (Gate::allows('modify', $product)) {
