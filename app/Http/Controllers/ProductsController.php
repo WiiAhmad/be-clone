@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 
 class ProductsController extends Controller implements HasMiddleware
 {
@@ -16,6 +17,7 @@ class ProductsController extends Controller implements HasMiddleware
             new Middleware('auth:sanctum', ['except' => ['index', 'show']])
         ];
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -29,10 +31,15 @@ class ProductsController extends Controller implements HasMiddleware
      */
     public function store(Request $request) // Using a Form Request for validation
     {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
         $fields = $request->validate([
             'title' => 'required',
             'desc' => 'required',
-            'image' => 'nullable|image|mimes:png,jpg,jpeg',
+            'image' => 'nullable|image|mimes:png,jpg,jpeg|file',
             'rating' => 'nullable|numeric',
             'category' => 'required',
             'release_date' => 'nullable|date'
@@ -40,11 +47,11 @@ class ProductsController extends Controller implements HasMiddleware
 
         if ($request->hasFile('image')) {
             $imageName = time().'.'.$request->file('image')->getClientOriginalExtension();
-            $request->file('image')->move(public_path('images'), $imageName);
-            $fields['image'] = $imageName;
+            $request->file('image')->storeAs('public/images', $imageName);
+            $fields['image'] = $imageName; // Store only the image name
         }
 
-        $product = $request->user()->products()->create($fields);
+        $product = $user->products()->create($fields);
         return ['product' => $product];
     }
 
@@ -67,21 +74,28 @@ class ProductsController extends Controller implements HasMiddleware
      */
     public function update(Request $request, $id) // Removed 'Product $product' parameter
     {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
         $product = products::find($id); // Renamed from 'products' to 'Product'
 
         if ($product) {
             if (Gate::allows('modify', $product)) {
                 $fields = $request->validate([
-                    'title' => 'required',
-                    'desc' => 'required',
-                    'image' => 'nullable|image|mimes:png,jpg,jpeg',
+                    'title' => 'sometimes|required',
+                    'desc' => 'sometimes|required',
+                    'image' => 'nullable|image|mimes:png,jpg,jpeg|file',
                     'rating' => 'nullable|numeric',
-                    'category' => 'required',
+                    'category' => 'sometimes|required',
                     'release_date' => 'nullable|date'
                 ]);
 
                 if ($request->hasFile('image')) {
-                    $fields['image'] = $request->file('image')->store('images', 'public');
+                    $imageName = time().'.'.$request->file('image')->getClientOriginalExtension();
+                    $request->file('image')->storeAs('public/images', $imageName);
+                    $fields['image'] = $imageName; // Store only the image name
                 }
 
                 $product->update($fields);
@@ -99,6 +113,11 @@ class ProductsController extends Controller implements HasMiddleware
      */
     public function destroy($id)
     {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
         $product = products::find($id); // Renamed from 'products' to 'Product'
 
         if ($product) {
