@@ -101,8 +101,13 @@ class ActivitiesController extends Controller implements HasMiddleware
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
         $activity = activities::find($id);
 
         if ($activity) {
@@ -110,7 +115,7 @@ class ActivitiesController extends Controller implements HasMiddleware
                 $activity->delete();
                 return response()->json(['message' => 'Activity deleted']);
             } else {
-                return response()->json(['message' => 'Unauthorized'], 403);
+                return response()->json(['message' => 'You do not own this activity.'], 403);
             }
         } else {
             return response()->json(['message' => 'Activity not found'], 404);

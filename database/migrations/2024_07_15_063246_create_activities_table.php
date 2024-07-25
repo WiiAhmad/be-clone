@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('title');
             $table->text('desc');
-            $table->string('category')->nullable();
             $table->string('image')->nullable();
             $table->timestamp('date')->nullable(); // Date and time of the activity
             $table->timestamps();

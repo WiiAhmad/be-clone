@@ -7,8 +7,10 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
-class TestimoniController extends Controller
+class TestimoniController extends Controller implements HasMiddleware
 {
     public static function middleware()
     {
@@ -29,19 +31,24 @@ class TestimoniController extends Controller
      */
     public function store(Request $request)
     {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
         $fields = $request->validate([
             'rating' => 'required',
             'testimoni' => 'required',
-            'image' => 'nullable|image|mimes:png,jpg,jpeg'
+            'image' => 'nullable|image|mimes:png,jpg,jpeg|file'
         ]);
 
-        if ($request->hasFile('image')) {
+        if($request->hasFile('image')){
             $imageName = time().'.'.$request->image->getClientOriginalExtension();
-            $request->image->move(public_path('images'), $imageName);
+            $request->file('image')->storeAs('public/images', $imageName);
             $fields['image'] = $imageName;
         }
 
-        $testimoni = $request->user()->testimoni()->create($fields);
+        $testimoni = $user->testimoni()->create($fields);
         return ['testimoni' => $testimoni];
     }
 
@@ -93,15 +100,24 @@ class TestimoniController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(testimoni $testimoni)
+    public function destroy(Request $request, $id)
     {
-        $product = products::find($id);
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
 
-        if (Gate::allows('modify', $testimoni)) {
-            $testimoni->delete();
-            return response()->json(['message' => 'Testimoni deleted.']);
+        $testimoni = testimoni::find($id);
+
+        if ($testimoni) {
+            if (Gate::allows('modify', $testimoni)) {
+                $testimoni->delete();
+                return response()->json(['message' => 'Testimoni deleted']);
+            } else {
+                return response()->json(['message' => 'You do not own this testimoni.'], 403);
+            }
         } else {
-            return response()->json(['message' => 'You do not own this testimoni.'], 403);
+            return response()->json(['message' => 'Testimoni not found'], 404);
         }
     }
 }

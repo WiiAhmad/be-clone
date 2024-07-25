@@ -8,6 +8,7 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class ProductsController extends Controller implements HasMiddleware
 {
@@ -92,6 +93,8 @@ class ProductsController extends Controller implements HasMiddleware
                     'release_date' => 'nullable|date'
                 ]);
 
+                Log::info('Fields to update: ' . json_encode($fields));
+
                 if ($request->hasFile('image')) {
                     $imageName = time().'.'.$request->file('image')->getClientOriginalExtension();
                     $request->file('image')->storeAs('public/images', $imageName);
@@ -111,7 +114,7 @@ class ProductsController extends Controller implements HasMiddleware
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $user = $request->user();
         if (!$user) {

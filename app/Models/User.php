@@ -56,4 +56,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(activities::class);
     }
+
+    public function testimoni()
+    {
+        return $this->hasMany(testimoni::class);
+    }
 }
