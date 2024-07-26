@@ -12,7 +12,8 @@ class testimoni extends Model
     protected $fillable = [
         'rating',
         'testimoni',
-        'image'
+        'image',
+        'date'
     ];
 
     public function user()

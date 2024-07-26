@@ -39,7 +39,8 @@ class TestimoniController extends Controller implements HasMiddleware
         $fields = $request->validate([
             'rating' => 'required',
             'testimoni' => 'required',
-            'image' => 'nullable|image|mimes:png,jpg,jpeg|file'
+            'image' => 'nullable|image|mimes:png,jpg,jpeg|file',
+            'date' => 'required|date'
         ]);
 
         if($request->hasFile('image')){
@@ -78,7 +79,8 @@ class TestimoniController extends Controller implements HasMiddleware
                 $fields = $request->validate([
                     'rating' => 'required',
                     'testimoni' => 'required',
-                    'image' => 'nullable|image|mimes:png,jpg,jpeg'
+                    'image' => 'nullable|image|mimes:png,jpg,jpeg',
+                    'date' => 'required|date'
                 ]);
 
                 if ($request->hasFile('image')) {

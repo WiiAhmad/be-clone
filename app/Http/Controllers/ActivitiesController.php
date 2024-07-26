@@ -6,6 +6,9 @@ use App\Models\activities;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class ActivitiesController extends Controller implements HasMiddleware
 {
@@ -29,6 +32,11 @@ class ActivitiesController extends Controller implements HasMiddleware
      */
     public function store(Request $request)
     {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
         $fields = $request->validate([
             'title' => 'required',
             'desc' => 'required',
@@ -36,18 +44,14 @@ class ActivitiesController extends Controller implements HasMiddleware
             'date' => 'nullable|date'
         ]);
 
-        // Check if the request has an image
         if ($request->hasFile('image')) {
-            // Generate a unique name for the image with its extension
-            $imageName = time().'.'.$request->image->getClientOriginalExtension();
-            // Move the image to the public/images directory
-            $request->image->move(public_path('images'), $imageName);
+            $imageName = time().'.'.$request->file('image')->getClientOriginalExtension();
+            $request->file('image')->storeAs('public/images', $imageName);
+            $fields['image'] = $imageName; // Store only the image name
         }
 
-        //$activities = activities::create($fields);
-        $activities = $request->user()->activities()->create($fields);
-
-        return ['activities' => $activities];
+        $activity = $user->activities()->create($fields);
+        return ['activity' => $activity];
     }
 
     /**
@@ -71,10 +75,15 @@ class ActivitiesController extends Controller implements HasMiddleware
      */
     public function update(Request $request, $id)
     {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
         $activity = activities::find($id);
 
-        if (Gate::allows('modify', $activity)) {
-            if ($activity) {
+        if ($activity) {
+            if (Gate::allows('modify', $activity)) {
                 $fields = $request->validate([
                     'title' => 'required',
                     'desc' => 'required',
@@ -83,18 +92,18 @@ class ActivitiesController extends Controller implements HasMiddleware
                 ]);
 
                 if ($request->hasFile('image')) {
-                    $imageName = time().'.'.$request->image->getClientOriginalExtension();
-                    $request->image->move(public_path('images'), $imageName);
-                    $fields['image'] = $imageName;
+                    $imageName = time().'.'.$request->file('image')->getClientOriginalExtension();
+                    $request->file('image')->storeAs('public/images', $imageName);
+                    $fields['image'] = $imageName; // Store only the image name
                 }
 
                 $activity->update($fields);
-                return ['activity' => $activity];
+                return response()->json(['message' => 'Activity updated']);
             } else {
-                return response()->json(['message' => 'Activity not found'], 404);
+                return response()->json(['message' => 'You do not own this activity.'], 403);
             }
         } else {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return response()->json(['message' => 'Activity not found'], 404);
         }
     }
 
